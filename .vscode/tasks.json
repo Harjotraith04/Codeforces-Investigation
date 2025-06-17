@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Backend",
+      "type": "shell",
+      "command": "cd server && npm install && npm run dev",
+      "problemMatcher": ["$tsc"],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Frontend",
+      "type": "shell",
+      "command": "cd client && npm install && npm start",
+      "problemMatcher": ["$tsc"],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Full Stack Application",
+      "dependsOn": [
+        "Start Backend",
+        "Start Frontend"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
