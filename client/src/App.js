@@ -33,16 +33,68 @@ function App() {
     },
     mode,
   }), [mode]);
-  
-  // Create theme based on mode
+    // Create theme based on mode
   const theme = useMemo(() => createTheme({
     palette: {
       mode,
       primary: {
-        main: '#2196f3',
+        main: mode === 'light' ? '#1976d2' : '#90caf9',
+        light: mode === 'light' ? '#42a5f5' : '#bbdefb',
+        dark: mode === 'light' ? '#0d47a1' : '#64b5f6',
       },
       secondary: {
-        main: '#f50057',
+        main: mode === 'light' ? '#e91e63' : '#f48fb1',
+        light: mode === 'light' ? '#f06292' : '#f8bbd0',
+        dark: mode === 'light' ? '#c2185b' : '#ef5350',
+      },
+      background: {
+        default: mode === 'light' ? '#f5f5f5' : '#121212',
+        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+      },
+    },
+    typography: {
+      fontFamily: [
+        'Roboto', 
+        'Arial', 
+        'sans-serif'
+      ].join(','),
+      h1: {
+        fontWeight: 500,
+        letterSpacing: '-0.01562em',
+      },
+      h2: {
+        fontWeight: 500,
+        letterSpacing: '-0.00833em',
+      },
+      h6: {
+        fontWeight: 500,
+      },
+    },
+    shape: {
+      borderRadius: 8,
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            borderRadius: 8,
+            padding: '8px 16px',
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+          },
+          elevation1: {
+            boxShadow: mode === 'light' 
+              ? '0px 2px 8px rgba(0, 0, 0, 0.08)'
+              : '0px 2px 8px rgba(0, 0, 0, 0.5)',
+          },
+        },
       },
     },
   }), [mode]);

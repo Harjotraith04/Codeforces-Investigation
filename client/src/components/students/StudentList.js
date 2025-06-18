@@ -66,13 +66,32 @@ const StudentList = ({
   };
 
   const columnsToShow = getColumnsToShow();
-
   return (
-    <Paper elevation={3}>
-      <TableContainer>
+    <Paper 
+      elevation={0}
+      sx={{
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 4px 20px rgba(0, 0, 0, 0.3)' 
+          : '0 4px 20px rgba(0, 0, 0, 0.05)',
+      }}
+    >
+      <TableContainer sx={{ borderRadius: '12px' }}>
         <Table stickyHeader aria-label="students table">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ 
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[900] 
+                : theme.palette.grey[50],
+              '& th': { 
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                fontSize: '0.875rem',
+                borderBottom: `2px solid ${theme.palette.divider}`
+              }
+            }}>
               {columnsToShow.includes('name') && (
                 <TableCell>Name</TableCell>
               )}
@@ -104,67 +123,140 @@ const StudentList = ({
           </TableHead>
           <TableBody>
             {students.length > 0 ? (
-              students.map((student) => (
-                <TableRow key={student._id} hover>
+              students.map((student, index) => (
+                <TableRow 
+                  key={student._id} 
+                  hover
+                  sx={{ 
+                    transition: 'all 0.2s',
+                    backgroundColor: index % 2 === 0 
+                      ? 'transparent' 
+                      : theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.02)'
+                        : 'rgba(0, 0, 0, 0.01)',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.05)' 
+                        : 'rgba(0, 0, 0, 0.04)',
+                      boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.05)'
+                    },
+                    '& td': {
+                      fontSize: '0.875rem',
+                      borderBottom: `1px solid ${theme.palette.divider}`
+                    }
+                  }}
+                >
                   {columnsToShow.includes('name') && (
-                    <TableCell component="th" scope="row">
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
                       {student.name}
                     </TableCell>
                   )}
                   {columnsToShow.includes('email') && (
-                    <TableCell>{student.email}</TableCell>
+                    <TableCell sx={{ color: theme.palette.text.secondary }}>{student.email}</TableCell>
                   )}
                   {columnsToShow.includes('phone') && (
-                    <TableCell>{student.phoneNumber}</TableCell>
+                    <TableCell sx={{ color: theme.palette.text.secondary }}>{student.phoneNumber}</TableCell>
                   )}
                   {columnsToShow.includes('handle') && (
                     <TableCell>
-                      <a 
+                      <Box 
+                        component="a" 
                         href={`https://codeforces.com/profile/${student.codeforcesHandle}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        style={{ color: getRatingColor(student.currentRating) }}
+                        sx={{ 
+                          color: getRatingColor(student.currentRating),
+                          fontWeight: 500,
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          }
+                        }}
                       >
                         {student.codeforcesHandle}
-                      </a>
+                      </Box>
                     </TableCell>
                   )}
                   {columnsToShow.includes('rating') && (
                     <TableCell>
-                      <span style={{ color: getRatingColor(student.currentRating) }}>
+                      <Box sx={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: `${getRatingColor(student.currentRating)}22`,
+                        color: getRatingColor(student.currentRating),
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        px: 1.5,
+                        py: 0.5,
+                        minWidth: '60px',
+                        textAlign: 'center'                      }}>
                         {student.currentRating || 0}
-                      </span>
+                      </Box>
                     </TableCell>
                   )}
                   {columnsToShow.includes('maxRating') && (
                     <TableCell>
-                      <span style={{ color: getRatingColor(student.maxRating) }}>
+                      <Box sx={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: `${getRatingColor(student.maxRating)}22`,
+                        color: getRatingColor(student.maxRating),
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        px: 1.5,
+                        py: 0.5,
+                        minWidth: '60px',
+                        textAlign: 'center'                      }}>
                         {student.maxRating || 0}
-                      </span>
+                      </Box>
                     </TableCell>
                   )}
                   {columnsToShow.includes('lastUpdated') && (
-                    <TableCell>
+                    <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.75rem' }}>
                       {formatDate(student.lastUpdated)}
                     </TableCell>
-                  )}
-                  {columnsToShow.includes('emailStatus') && (
+                  )}                  {columnsToShow.includes('emailStatus') && (
                     <TableCell>
-                      <Chip 
-                        size="small" 
-                        color={student.disableEmails ? "error" : "success"}
-                        label={student.disableEmails ? 
-                          "Disabled" : `Enabled (${student.emailsSent || 0} sent)`}
-                      />
-                    </TableCell>
+                      {!student.disableEmails ? (
+                        <Chip 
+                          size="small" 
+                          label="Enabled" 
+                          color="success" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          }} 
+                        />
+                      ) : (
+                        <Chip 
+                          size="small" 
+                          label="Disabled" 
+                          color="default" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            fontWeight: 500
+                          }} 
+                        />
+                      )}                    </TableCell>
                   )}
                   {columnsToShow.includes('actions') && (
                     <TableCell align="right">
-                      <IconButton 
-                        component={Link}
-                        to={`/students/${student._id}`}
-                        color="primary"
-                        size="small"
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                        <IconButton 
+                          component={Link}
+                          to={`/students/${student._id}`}
+                          color="primary"
+                          size="small"
+                          sx={{ 
+                            color: theme.palette.primary.main,
+                            backgroundColor: `${theme.palette.primary.main}10`,
+                            '&:hover': {
+                              backgroundColor: `${theme.palette.primary.main}20`
+                            }
+                          }}
                       >
                         <VisibilityIcon />
                       </IconButton>
@@ -189,6 +281,7 @@ const StudentList = ({
                       >
                         {student.disableEmails ? <NotificationsOffIcon /> : <NotificationsIcon />}
                       </IconButton>
+                      </Box>
                     </TableCell>
                   )}
                 </TableRow>

@@ -53,12 +53,13 @@ const getContestHistory = asyncHandler(async (req, res) => {
   // Sort by date (most recent first)
   filteredContests.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Prepare rating data for graph
+  // Prepare rating data for graph with rank
   const ratingData = filteredContests.map(contest => ({
     contestId: contest.contestId,
     contestName: contest.contestName,
     date: contest.date,
-    newRating: contest.newRating
+    newRating: contest.newRating,
+    rank: contest.rank // Include rank in the graph data
   })).reverse(); // Reverse to get chronological order for graph
 
   res.status(200).json({

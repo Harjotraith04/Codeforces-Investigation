@@ -32,21 +32,48 @@ const getRankTitle = (rating) => {
 
 const UserRatingCard = ({ handle, rating, maxRating, loading }) => {
   const theme = useTheme();
-  
-  if (loading) {
+    if (loading) {
     return (
-      <Card variant="outlined" sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+      <Card 
+        elevation={0}
+        sx={{ 
+          mb: 3, 
+          borderRadius: '12px', 
+          border: `1px solid ${theme.palette.divider}`,
+          background: theme.palette.mode === 'dark' 
+            ? `linear-gradient(145deg, #1e1e1e 0%, #2a2a2a 100%)` 
+            : `linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)`,
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 8px 16px rgba(0, 0, 0, 0.4)' 
+            : '0 8px 16px rgba(0, 0, 0, 0.05)'
+        }}
+      >
+        <CardContent sx={{ padding: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1 }}>
             <Skeleton variant="text" width={150} height={40} />
+            <Skeleton variant="rounded" width={80} height={28} />
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Skeleton variant="text" width={100} height={30} />
-            <Skeleton variant="text" width={80} height={30} />
+          
+          <Box sx={{ 
+            p: 2, 
+            borderRadius: '8px',
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.05)' 
+              : 'rgba(0, 0, 0, 0.02)',
+            mb: 2
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Skeleton variant="text" width={100} height={30} />
+              <Skeleton variant="text" width={80} height={30} />
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Skeleton variant="text" width={120} height={30} />
+              <Skeleton variant="text" width={80} height={30} />
+            </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Skeleton variant="text" width={120} height={30} />
-            <Skeleton variant="text" width={80} height={30} />
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Skeleton variant="text" width={180} height={20} />
           </Box>
         </CardContent>
       </Card>
@@ -56,47 +83,111 @@ const UserRatingCard = ({ handle, rating, maxRating, loading }) => {
   const currentRatingColor = getRatingColor(rating);
   const maxRatingColor = getRatingColor(maxRating);
   const rankTitle = getRankTitle(rating);
-
   return (
-    <Card variant="outlined" sx={{ mb: 3 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+    <Card 
+      elevation={0}
+      sx={{ 
+        mb: 3, 
+        borderRadius: '12px', 
+        border: `1px solid ${theme.palette.divider}`,
+        background: theme.palette.mode === 'dark' 
+          ? `linear-gradient(145deg, #1e1e1e 0%, #2a2a2a 100%)` 
+          : `linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)`,
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 8px 16px rgba(0, 0, 0, 0.4)' 
+          : '0 8px 16px rgba(0, 0, 0, 0.05)',
+        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 12px 20px rgba(0, 0, 0, 0.5)' 
+            : '0 12px 20px rgba(0, 0, 0, 0.08)'
+        }
+      }}
+    >
+      <CardContent sx={{ padding: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 3, 
+          flexWrap: 'wrap',
+          gap: 1
+        }}>
+          <Typography 
+            variant="h5" 
+            component="div" 
+            sx={{ 
+              mr: 2, 
+              fontWeight: 700,
+              letterSpacing: '0.5px'
+            }}
+          >
             {handle}
           </Typography>
           <Chip 
             label={rankTitle} 
             sx={{ 
-              color: currentRatingColor,
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(0, 0, 0, 0.07)',
-              fontWeight: 'bold'
+              color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+              backgroundColor: `${currentRatingColor}22`,
+              border: `1px solid ${currentRatingColor}`,
+              fontWeight: 'bold',
+              px: 0.5
             }} 
           />
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="body1" color="text.secondary">
-            Current Rating:
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ fontWeight: 'bold', color: currentRatingColor }}
-          >
-            {rating || 'Unrated'}
-          </Typography>
+        <Box sx={{ 
+          p: 2, 
+          borderRadius: '8px',
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.05)' 
+            : 'rgba(0, 0, 0, 0.02)',
+          mb: 2
+        }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+              Current Rating:
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 700, 
+                color: currentRatingColor,
+                display: 'inline-flex',
+                alignItems: 'center',
+                position: 'relative'
+              }}
+            >
+              {rating || 'Unrated'}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+              Max Rating:
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 700, 
+                color: maxRatingColor 
+              }}
+            >
+              {maxRating || 'Unrated'}
+            </Typography>
+          </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="body1" color="text.secondary">
-            Max Rating:
-          </Typography>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          mt: 2
+        }}>
           <Typography 
-            variant="body1" 
-            sx={{ fontWeight: 'bold', color: maxRatingColor }}
+            variant="caption" 
+            sx={{ color: theme.palette.text.secondary }}
           >
-            {maxRating || 'Unrated'}
+            Codeforces User | Updated {new Date().toLocaleDateString()}
           </Typography>
         </Box>
       </CardContent>

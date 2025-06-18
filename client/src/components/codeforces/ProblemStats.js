@@ -64,18 +64,35 @@ const ProblemStats = ({ stats }) => {
     };
   };
   
-  const chartData = prepareRatingChartData();
-  const chartOptions = {
+  const chartData = prepareRatingChartData();  const chartOptions = {
     responsive: true,
+    animation: {
+      duration: 1500,
+      easing: 'easeOutQuart'
+    },
     plugins: {
       legend: {
         display: false,
       },
       tooltip: {
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: theme.palette.mode === 'dark' ? '#fff' : '#000',
+        bodyColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+        borderColor: theme.palette.divider,
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        titleFont: {
+          weight: 'bold',
+          size: 14
+        },
         callbacks: {
           title: (tooltipItems) => {
             const rating = tooltipItems[0].label;
             return rating === 'Unrated' ? 'Unrated' : `Rating: ${rating}`;
+          },
+          label: (context) => {
+            return `Problems solved: ${context.raw}`;
           }
         }
       }
@@ -83,20 +100,32 @@ const ProblemStats = ({ stats }) => {
     scales: {
       x: {
         grid: {
+          display: false,
           color: theme.palette.divider,
         },
         ticks: {
-          color: theme.palette.text.primary,
+          color: theme.palette.text.secondary,
+          font: {
+            size: 11
+          },
+          maxRotation: 30,
+          minRotation: 30
         }
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: theme.palette.divider,
+          color: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(0, 0, 0, 0.05)',
+          borderDash: [2, 2],
         },
         ticks: {
-          color: theme.palette.text.primary,
-          precision: 0
+          color: theme.palette.text.secondary,
+          precision: 0,
+          font: {
+            size: 11
+          }
         }
       }
     }
@@ -115,69 +144,173 @@ const ProblemStats = ({ stats }) => {
     if (rating >= 1200) return '#008000'; // green
     return '#808080'; // gray
   };
-  
-  return (
-    <Card elevation={3}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
+    return (
+    <Card 
+      elevation={0}
+      sx={{ 
+        borderRadius: '12px', 
+        overflow: 'hidden', 
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.palette.mode === 'light' 
+          ? '0 6px 16px rgba(0, 0, 0, 0.08)' 
+          : '0 6px 16px rgba(0, 0, 0, 0.3)',
+      }}
+    >
+      <CardContent sx={{ padding: 3 }}>
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 600, 
+            mb: 3,
+            color: theme.palette.primary.main,
+            display: 'flex',
+            alignItems: 'center',
+            '&::before': {
+              content: '""',
+              width: 4,
+              height: 24,
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: 4,
+              marginRight: 1.5,
+              display: 'inline-block'
+            }
+          }}
+        >
           Problem Solving Statistics
         </Typography>
         
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {/* Key metrics */}
           <Grid item xs={12}>
             <Paper 
-              variant="outlined" 
-              sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
+              elevation={0}
+              sx={{ 
+                p: 2.5, 
+                pt: 3,
+                pb: 3,
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 1.5,
+                borderRadius: '10px',
+                border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.03)' 
+                  : 'rgba(0, 0, 0, 0.01)'
+              }}
             >
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Total Problems Solved
-                  </Typography>
-                  <Typography variant="h5">
-                    {stats.totalProblemsSolved}
-                  </Typography>
+                  <Box sx={{ 
+                    borderRadius: '8px',
+                    p: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(25, 118, 210, 0.15)'
+                      : 'rgba(25, 118, 210, 0.05)',
+                    height: '100%'
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                      Total Problems Solved
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {stats.totalProblemsSolved}
+                    </Typography>
+                  </Box>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Average Rating
-                  </Typography>
-                  <Typography variant="h5">
-                    {stats.averageRating || 'N/A'}
-                  </Typography>
+                  <Box sx={{ 
+                    borderRadius: '8px',
+                    p: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(76, 175, 80, 0.15)'
+                      : 'rgba(76, 175, 80, 0.05)',
+                    height: '100%'
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                      Average Rating
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {stats.averageRating || 'N/A'}
+                    </Typography>
+                  </Box>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Problems Per Day
-                  </Typography>
-                  <Typography variant="h5">
-                    {stats.averageProblemsPerDay}
-                  </Typography>
+                  <Box sx={{ 
+                    borderRadius: '8px',
+                    p: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(156, 39, 176, 0.15)'
+                      : 'rgba(156, 39, 176, 0.05)',
+                    height: '100%'
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                      Problems Per Day
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {stats.averageProblemsPerDay}
+                    </Typography>
+                  </Box>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Hardest Problem
-                  </Typography>
-                  <Typography variant="h5" style={{ color: getMostDifficultColor() }}>
-                    {stats.mostDifficultProblem ? stats.mostDifficultProblem.rating : 'N/A'}
-                  </Typography>
-                  <Typography variant="caption" noWrap>
-                    {stats.mostDifficultProblem ? stats.mostDifficultProblem.name : ''}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  <Box sx={{ 
+                    borderRadius: '8px',
+                    p: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 152, 0, 0.15)'
+                      : 'rgba(255, 152, 0, 0.05)',
+                    height: '100%'
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                      Hardest Problem
+                    </Typography>
+                    <Typography variant="h4" sx={{ 
+                      color: getMostDifficultColor(),
+                      fontWeight: 700 
+                    }}>
+                      {stats.mostDifficultProblem ? stats.mostDifficultProblem.rating : 'N/A'}
+                    </Typography>
+                    <Typography variant="caption" noWrap sx={{ display: 'block', mt: 0.5 }}>
+                      {stats.mostDifficultProblem ? stats.mostDifficultProblem.name : ''}
+                    </Typography>
+                  </Box>
+                </Grid>              </Grid>
             </Paper>
           </Grid>
           
           {/* Rating distribution chart */}
           <Grid item xs={12}>
-            <Box sx={{ height: { xs: '250px', md: '300px' } }}>
-              <Bar data={chartData} options={chartOptions} />
-            </Box>
+            <Paper 
+              elevation={0}
+              sx={{ 
+                p: 3,
+                borderRadius: '10px',
+                border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.03)' 
+                  : 'rgba(0, 0, 0, 0.01)'
+              }}
+            >
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  mb: 2, 
+                  fontWeight: 600,
+                  color: theme.palette.text.primary 
+                }}
+              >
+                Problem Rating Distribution
+              </Typography>
+              <Box sx={{ 
+                height: { xs: '280px', md: '350px' },
+                animation: 'fadeIn 0.6s ease-in',
+                padding: 2
+              }}>
+                <Bar data={chartData} options={chartOptions} />
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </CardContent>
