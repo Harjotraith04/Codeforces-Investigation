@@ -1,62 +1,151 @@
 import React from 'react';
 import { Box, Card, CardContent, Typography, useTheme } from '@mui/material';
-import { format } from 'date-fns';
+import { format, startOfWeek, eachDayOfInterval, getMonth, subYears, isSameDay } from 'date-fns';
 
 const SubmissionHeatmap = ({ submissions }) => {
   const theme = useTheme();
-    // Generate date cells for the last 365 days
-  const generateDateCells = () => {
-    const cells = [];
-    const today = new Date();
-    const submissionsByDate = submissions || {};
+  const today = new Date();
+  const oneYearAgo = subYears(today, 1);
+  
+  // Generate data for a calendar view like GitHub's contribution graph
+  const generateCalendarData = () => {
+    // Start from the beginning of the week one year ago
+    const firstDay = startOfWeek(oneYearAgo);
+    // Generate all days from that date to today
+    const days = eachDayOfInterval({ start: firstDay, end: today });
     
-    // Generate dates for the past year
-    for (let i = 364; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = format(date, 'yyyy-MM-dd');
-      const count = submissionsByDate[dateStr] || 0;
-      const formattedDate = format(date, 'MMM dd, yyyy');
+    // Create month labels
+    const months = [];
+    let currentMonth = null;
+    days.forEach(day => {
+      const month = getMonth(day);
+      if (month !== currentMonth) {
+        months.push({
+          label: format(day, 'MMM'),
+          index: months.length
+        });
+        currentMonth = month;
+      }
+    });
+    
+    // Organize days into weeks
+    const weeks = [];
+    let currentWeek = [];
+    
+    days.forEach((day, index) => {
+      const dayOfWeek = day.getDay(); // 0 = Sunday, 6 = Saturday
       
-      // Determine color intensity based on submission count
-      let backgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#eee'; // Base color for no submissions
-      let boxShadow = 'none';
-      let transform = 'scale(1)';
-      
-      if (count > 0) {
-        const colorIntensity = Math.min(100, count * 20); // Scale the color intensity
-        backgroundColor = theme.palette.mode === 'dark' 
-          ? `hsl(122, 50%, ${Math.min(50, 10 + colorIntensity)}%)`  // Dark mode green
-          : `hsl(122, 70%, ${Math.max(40, 90 - colorIntensity)}%)`; // Light mode green
-        
-        boxShadow = theme.palette.mode === 'dark'
-          ? 'none'
-          : 'inset 0 0 0 1px rgba(0, 0, 0, 0.05)';
+      if (dayOfWeek === 0 && currentWeek.length > 0) {
+        weeks.push(currentWeek);
+        currentWeek = [];
       }
       
-      cells.push(
-        <Box
-          key={dateStr}
-          className="submission-day"
-          sx={{
-            backgroundColor,
-            boxShadow,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              transform: 'scale(1.3)',
-              boxShadow: `0 0 0 1px ${theme.palette.primary.main}, 0 0 8px rgba(33, 150, 243, 0.5)`,
-              zIndex: 10
-            }
-          }}
-          title={`${formattedDate}: ${count} problems solved`}
-        />
-      );
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const count = submissions?.[dateStr] || 0;
+      
+      currentWeek.push({
+        date: day,
+        dateStr,
+        count,
+        dayOfWeek
+      });
+    });
+    
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek);
     }
     
-    return cells;
+    return { weeks, months };
   };
-    return (
+  
+  const { weeks, months } = generateCalendarData();
+  
+  // Calculate metrics for display
+  const calculateMetrics = () => {
+    if (!submissions) return { total: 0, maxStreak: 0, currentStreak: 0 };
+    
+    let total = 0;
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let tempStreak = 0;
+    
+    // Sort dates in ascending order
+    const sortedDates = Object.keys(submissions).sort();
+    
+    // Calculate total problems
+    total = sortedDates.reduce((sum, date) => sum + submissions[date], 0);
+    
+    // Calculate streaks
+    let prevDate = null;
+    for (let i = sortedDates.length - 1; i >= 0; i--) {
+      const currentDate = new Date(sortedDates[i]);
+      const problem_count = submissions[sortedDates[i]];
+      
+      // If this is the first date or it's consecutive with previous date
+      if (problem_count > 0) {
+        if (prevDate === null) {
+          tempStreak = 1;
+          
+          // If this date is today, start counting current streak
+          if (isSameDay(currentDate, today)) {
+            currentStreak = 1;
+          }
+        } else {
+          const dayDiff = (prevDate - currentDate) / (1000 * 60 * 60 * 24);
+          if (dayDiff === 1) {
+            tempStreak++;
+            
+            // Update current streak if we're in a sequence ending today
+            if (currentStreak > 0) {
+              currentStreak++;
+            }
+          } else {
+            // Streak broken
+            if (tempStreak > maxStreak) {
+              maxStreak = tempStreak;
+            }
+            tempStreak = 1;
+            
+            // Reset current streak if broken
+            if (!isSameDay(currentDate, today)) {
+              currentStreak = 0;
+            } else {
+              currentStreak = 1;
+            }
+          }
+        }
+        
+        prevDate = currentDate;
+      }
+    }
+    
+    // Check if final streak is the max streak
+    if (tempStreak > maxStreak) {
+      maxStreak = tempStreak;
+    }
+    
+    return { total, maxStreak, currentStreak };
+  };
+  
+  const metrics = calculateMetrics();
+  
+  // Get color for cell based on count
+  const getCellColor = (count) => {
+    if (count === 0) return theme.palette.mode === 'dark' ? '#1e1e1e' : '#ebedf0';
+    
+    const intensity = Math.min(4, Math.ceil(count / 1.5));
+    
+    const colors = theme.palette.mode === 'dark'
+      ? ['#0e4429', '#006d32', '#26a641', '#39d353'] // Dark mode colors
+      : ['#9be9a8', '#40c463', '#30a14e', '#216e39']; // Light mode colors
+      
+    return colors[intensity - 1];
+  };
+  
+  // Day names for the y-axis
+  const dayNames = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+  
+  return (
     <Card 
       elevation={0}
       sx={{ 
@@ -106,70 +195,159 @@ const SubmissionHeatmap = ({ submissions }) => {
             border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Box
-            className="submission-heatmap"
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, 15px)',
-              gap: '3px',
-              my: 2,
-              mx: 'auto',
-              justifyContent: 'center',
-              maxWidth: '100%',
-              overflowX: 'auto'
-            }}
-          >
-            {generateDateCells()}
-          </Box>
           
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: 2, 
-            mt: 2,
-            pt: 1,
-            borderTop: `1px solid ${theme.palette.divider}`
-          }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-              Less
-            </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', mt: 2 }}>
+            {/* Day labels */}
             <Box sx={{ 
               display: 'flex', 
-              alignItems: 'center', 
-              gap: '4px'
+              flexDirection: 'column', 
+              mr: 1, 
+              height: '100%',
+              mt: 3, // Align with first cell
+              justifyContent: 'space-around'
             }}>
-              <Box sx={{ 
-                width: 13, height: 13, 
-                backgroundColor: theme.palette.mode === 'dark' ? '#424242' : '#eee', 
-                borderRadius: '3px',
-                boxShadow: theme.palette.mode === 'dark' ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.1)'
-              }} />
-              <Box sx={{ 
-                width: 13, height: 13, 
-                backgroundColor: theme.palette.mode === 'dark' ? 'hsl(122, 50%, 20%)' : 'hsl(122, 70%, 80%)', 
-                borderRadius: '3px',
-                boxShadow: theme.palette.mode === 'dark' ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.1)'
-              }} />
-              <Box sx={{ 
-                width: 13, height: 13, 
-                backgroundColor: theme.palette.mode === 'dark' ? 'hsl(122, 50%, 30%)' : 'hsl(122, 70%, 70%)', 
-                borderRadius: '3px',
-                boxShadow: theme.palette.mode === 'dark' ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.1)'
-              }} />
-              <Box sx={{ 
-                width: 13, height: 13, 
-                backgroundColor: theme.palette.mode === 'dark' ? 'hsl(122, 50%, 40%)' : 'hsl(122, 70%, 60%)', 
-                borderRadius: '3px',
-                boxShadow: theme.palette.mode === 'dark' ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.1)'
-              }} />
-              <Box sx={{ 
-                width: 13, height: 13, 
-                backgroundColor: theme.palette.mode === 'dark' ? 'hsl(122, 50%, 50%)' : 'hsl(122, 70%, 40%)', 
-                borderRadius: '3px',
-                boxShadow: theme.palette.mode === 'dark' ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.1)'
-              }} />
+              {dayNames.map((day, i) => (
+                <Typography 
+                  key={i} 
+                  variant="caption" 
+                  sx={{ 
+                    fontSize: '10px',
+                    color: theme.palette.text.secondary,
+                    height: '13px',
+                    lineHeight: '13px',
+                    width: '30px',
+                    textAlign: 'right',
+                    pr: 1
+                  }}
+                >
+                  {day}
+                </Typography>
+              ))}
             </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+            
+            {/* Calendar cells */}
+            <Box sx={{ flexGrow: 1, overflowX: 'auto' }}>
+              {/* Month labels */}
+              <Box sx={{ 
+                display: 'flex', 
+                mb: 0.5,
+                pl: '4px', // Align with the cells below
+              }}>
+                {months.map((month) => (
+                  <Typography
+                    key={month.index}
+                    variant="caption"
+                    sx={{
+                      fontSize: '10px',
+                      color: theme.palette.text.secondary,
+                      width: month.index < months.length - 1 ? '60px' : 'auto',
+                      flexShrink: 0
+                    }}
+                  >
+                    {month.label}
+                  </Typography>
+                ))}
+              </Box>
+              
+              {/* Calendar grid */}
+              <Box sx={{ display: 'flex' }}>
+                {weeks.map((week, weekIndex) => (
+                  <Box 
+                    key={weekIndex} 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      mr: '2px'
+                    }}
+                  >
+                    {Array(7).fill(0).map((_, dayIndex) => {
+                      const day = week[dayIndex];
+                      return (
+                        <Box
+                          key={dayIndex}
+                          sx={{
+                            width: '11px',
+                            height: '11px',
+                            mb: '2px',
+                            backgroundColor: day ? getCellColor(day.count) : 'transparent',
+                            borderRadius: '2px',
+                            cursor: day ? 'pointer' : 'default',
+                            transition: 'all 0.2s ease',
+                            '&:hover': day ? {
+                              transform: 'scale(1.2)',
+                              boxShadow: `0 0 4px ${theme.palette.primary.main}`
+                            } : {}
+                          }}
+                          title={day ? `${format(day.date, 'MMM dd, yyyy')}: ${day.count} problems solved` : ''}
+                        />
+                      );
+                    })}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+          
+          {/* Metrics display */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            mt: 5,
+            flexWrap: 'wrap',
+            gap: 2
+          }}>
+            <Box sx={{ minWidth: '200px', mb: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {metrics.total} problems
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                solved for all time
+              </Typography>
+            </Box>
+            
+            <Box sx={{ minWidth: '200px', mb: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {metrics.maxStreak} days
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                in a row max.
+              </Typography>
+            </Box>
+            
+            <Box sx={{ minWidth: '200px', mb: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {metrics.currentStreak} days
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                in a row for the last month
+              </Typography>
+            </Box>
+          </Box>
+          
+          {/* Color legend */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: 1, 
+            mt: 2,
+            alignItems: 'center'
+          }}>
+            <Typography variant="caption" color="text.secondary">
+              Less
+            </Typography>
+            {[0, 1, 2, 3, 4].map(level => (
+              <Box
+                key={level}
+                sx={{
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: getCellColor(level),
+                  borderRadius: '2px',
+                }}
+              />
+            ))}
+            <Typography variant="caption" color="text.secondary">
               More
             </Typography>
           </Box>

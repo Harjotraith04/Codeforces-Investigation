@@ -11,6 +11,7 @@ const { checkInactiveStudents } = require('./services/emailService');
 // Routes
 const studentRoutes = require('./routes/studentRoutes');
 const configRoutes = require('./routes/configRoutes');
+const testRoutes = require('./routes/testRoutes'); // Added for testing purposes
 
 // Connect to database
 connectDB();
@@ -25,6 +26,7 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/students', studentRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/test', testRoutes); // Added test routes
 
 app.get('/', (req, res) => {
   res.send('API is running...');

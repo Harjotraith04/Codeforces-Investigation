@@ -6,19 +6,53 @@ const Config = require('../models/configModel');
 
 // Configure email transporter
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  // For testing purposes, use a test account
+  if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true') {
+    // Create a test SMTP service account from ethereal.email
+    // This is only needed if you don't have a real mail account for testing
+    return nodemailer.createTestAccount().then(testAccount => {
+      console.log('Created test email account:', testAccount);
+      return nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+    });
+  }
+
+  // For Gmail with regular password (not recommended for production)
+  if (process.env.EMAIL_SERVICE === 'gmail-password') {
+    return Promise.resolve(nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    }));
+  }
+  
+  // For Gmail with OAuth2 (recommended for production)
+  return Promise.resolve(nodemailer.createTransport({
     service: 'gmail',
     auth: {
+      type: 'OAuth2',
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      clientId: process.env.GMAIL_CLIENT_ID,
+      clientSecret: process.env.GMAIL_CLIENT_SECRET,
+      refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+      accessToken: process.env.GMAIL_ACCESS_TOKEN
     }
-  });
+  }));
 };
 
 // Send inactivity reminder email
 const sendInactivityEmail = async (student) => {
   try {
-    const transporter = createTransporter();
+    const transporter = await createTransporter();
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -42,6 +76,11 @@ const sendInactivityEmail = async (student) => {
     
     const info = await transporter.sendMail(mailOptions);
     console.log(`Email sent to ${student.email}: ${info.messageId}`);
+    
+    // If using Ethereal email for testing, provide a link to view the email
+    if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true') {
+      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    }
     
     // Update the email sent counter and date
     student.emailsSent += 1;
@@ -104,5 +143,6 @@ const checkInactiveStudents = async () => {
 };
 
 module.exports = {
-  checkInactiveStudents
+  checkInactiveStudents,
+  sendInactivityEmail
 };
