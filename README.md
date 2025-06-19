@@ -30,6 +30,12 @@ A full-stack MERN application to track and manage student progress with Codeforc
 - Light and dark mode toggle
 - Interactive data visualization
 
+## Demo Video
+
+Watch the demonstration of this application:
+
+[![Student Progress Management System Demo](https://img.youtube.com/vi/3ju7VED64Ls/0.jpg)](https://www.youtube.com/watch?v=3ju7VED64Ls)
+
 ## Tech Stack
 - **MongoDB**: Database for storing student and Codeforces data
 - **Express.js**: Backend server framework
