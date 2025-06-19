@@ -2,6 +2,10 @@
 
 A full-stack MERN application to track and manage student progress with Codeforces integration.
 
+## Application Screenshot
+
+![Application Screenshot](client/public/image.png)
+
 ## Features
 
 ### Student Management
@@ -70,3 +74,13 @@ PORT=5000
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Documentation
+
+For detailed information about the API endpoints and how to use them, please refer to the [APIs Documentation](client/public/apis.pdf).
+
+The application provides various APIs for:
+- Managing student data
+- Integrating with Codeforces
+- Configuring application settings
+- Running tests and diagnostics

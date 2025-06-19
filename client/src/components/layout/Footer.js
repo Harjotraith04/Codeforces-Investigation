@@ -59,10 +59,11 @@ const Footer = () => {
             >
               {'© '}
               {new Date().getFullYear()}
-              {' Codeforces Investigation | '}
-              <Link 
+              {' Codeforces Investigation | '}              <Link 
                 color="inherit" 
-                href="#"
+                href="/apis.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{ 
                   textDecoration: 'none', 
                   '&:hover': { color: theme.palette.primary.main } 
